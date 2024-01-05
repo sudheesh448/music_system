@@ -6,10 +6,7 @@ from fastapi import FastAPI, File, UploadFile, Form, HTTPException, Depends
 from sqlalchemy.orm import Session
 
 from backend.database import SessionLocal, engine
-<<<<<<< HEAD
 from backend.functions.functions_for_listing_out_albums import get_all_albums
-=======
->>>>>>> ffb67e05c378dd75cc68885e1d20d01eb792283b
 from backend.functions.functions_for_upload import is_mp3_file, save_music_details
 from backend.functions.functions_for_listing import get_all_songs
 from typing import List
@@ -26,13 +23,24 @@ def get_db():
         db.close()
 
 
-<<<<<<< HEAD
 @app.get("/api/albums", response_model=List[dict])
 async def list_albums(db: Session = Depends(get_db)):
-=======
+    """
+    Get a list of all albums in the database.
+
+    -------------------------------
+    PARAMETERS:
+    - db (Session): The database session.
+
+    RETURNS:
+    - List[dict]: List of dictionaries representing each album's details.
+    """
+    albums = get_all_albums(db)
+    return albums
+
+    
 @app.get("/api/music", response_model=List[dict])
 async def list_songs(db: Session = Depends(get_db)):
->>>>>>> ffb67e05c378dd75cc68885e1d20d01eb792283b
     """
     Get a list of all songs in the database.
 
@@ -42,10 +50,7 @@ async def list_songs(db: Session = Depends(get_db)):
     Returns:
     - List[dict]: List of dictionaries representing each song's details.
     """
-<<<<<<< HEAD
     albums = get_all_albums(db)
     return albums
-=======
     songs = get_all_songs(db)
     return songs
->>>>>>> ffb67e05c378dd75cc68885e1d20d01eb792283b
