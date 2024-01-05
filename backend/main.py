@@ -7,8 +7,8 @@ from sqlalchemy.orm import Session
 
 from backend.database import SessionLocal, engine
 from backend.functions.functions_for_listing_out_albums import get_all_albums
-# from backend.functions.functions_for_upload import is_mp3_file, save_music_details
-# from backend.functions.functions_for_listing import get_all_songs
+from backend.functions.functions_for_upload import is_mp3_file, save_music_details
+from backend.functions.functions_for_listing import get_all_songs
 from typing import List
 from backend.models import Music, Album
 
