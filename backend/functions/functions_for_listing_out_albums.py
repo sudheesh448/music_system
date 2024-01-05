@@ -5,10 +5,11 @@ def get_all_albums(db: Session):
     """
     Get a list of all albums in the database.
 
-    Parameters:
+    -------------------------------
+    PARAMETERS:
     - db (Session): The database session.
 
-    Returns:
+    RETURNS:
     - List[dict]: List of dictionaries representing each album's details.
     """
 
