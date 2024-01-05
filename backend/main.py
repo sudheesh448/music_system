@@ -7,11 +7,8 @@ from sqlalchemy.orm import Session
 
 from backend.database import SessionLocal, engine
 from backend.functions.functions_for_upload import is_mp3_file, save_music_details
-<<<<<<< HEAD
-=======
 from backend.functions.functions_for_listing import get_all_songs
 from typing import List
->>>>>>> ffb67e05c378dd75cc68885e1d20d01eb792283b
 from backend.models import Music, Album
 
 
@@ -25,7 +22,6 @@ def get_db():
         db.close()
 
 
-<<<<<<< HEAD
 @app.post("/api/upload")
 async def upload_file(
     title: str = Form(...),
@@ -69,7 +65,6 @@ async def upload_file(
         return {"message": "File successfully uploaded and details saved"}
     except Exception as e:
         print("error", e)
-=======
 @app.get("/api/music", response_model=List[dict])
 async def list_songs(db: Session = Depends(get_db)):
     """
@@ -83,4 +78,3 @@ async def list_songs(db: Session = Depends(get_db)):
     """
     songs = get_all_songs(db)
     return songs
->>>>>>> ffb67e05c378dd75cc68885e1d20d01eb792283b
