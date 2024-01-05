@@ -5,9 +5,12 @@ def get_all_songs(db: Session):
     """
     Get a list of all songs in the database.
 
-    
+    :PARAMETERS
+    -----------
+    db: Object of the Session ORM. 
 
-    RETURNS:
+    :RETURNS
+    --------
     - List[dict]: List of dictionaries representing each song's details.
     """
 
