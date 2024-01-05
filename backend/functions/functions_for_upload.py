@@ -33,16 +33,18 @@ def get_or_create_album(db: Session, album_title: str) -> Album:
     - Album: The existing or newly created Album instance.
     """
     existing_album = db.query(Album).filter(Album.title == album_title).first()
+    print("album")
     if existing_album:
         return existing_album
     else:
+        print("here hdfk")
         new_album = Album(title=album_title)
         db.add(new_album)
         db.commit()
         db.refresh(new_album)
         return new_album
 
-def save_music_details(db: Session, title: str, artist: str, album_title: str, release_year: Optional[int], mp3_file: str) -> None:
+def save_music_details(db: Session, **kwargs) -> None:
     """
     Save music details to the database.
     if the album title is not none it calls the get_or_create_album method to create or get the album. 
@@ -50,22 +52,28 @@ def save_music_details(db: Session, title: str, artist: str, album_title: str, r
 
     Parameters:
     - db (Session): The database session.
-    - title (str): The title of the music.
-    - artist (str): The artist of the music.
-    - album_title (str): The title of the album (can be None if no album is specified).
-    - release_year (Optional[int]): The release year of the music (can be None).
-    - mp3_file (str): The filename of the MP3 file.
+    - kwargs (dict): A dictionary containing the details of the music.
 
     Returns:
     - None
     """
+
+    print("here music")
+    album_title = kwargs.get("album_title")
     if album_title is not None:
         album_db = get_or_create_album(db, album_title)
+        print("here")
         album_id = album_db.id
     else:
         album_id = None
 
-    new_music = Music(title=title, artist=artist, album_id=album_id, release_year=release_year, mp3_file=mp3_file)
+    new_music = Music(
+        title=kwargs.get("title"),
+        artist=kwargs.get("artist"),
+        album_id=album_id,
+        release_year=kwargs.get("release_year"),
+        mp3_data=kwargs.get("mp3_data")
+    )
     db.add(new_music)
     db.commit()
     db.refresh(new_music)

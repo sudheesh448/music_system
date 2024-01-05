@@ -49,22 +49,20 @@ async def upload_file(
     Returns:
     - dict: A message indicating the success of the file upload and details save.
     """
-
+    print("here 123")
     try:
         if not is_mp3_file(file.filename):
             raise HTTPException(status_code=400, detail="Invalid file format. Only MP3 files are allowed.")
+        
+        mp3_data = file.file.read()
+        
+        save_music_details(db=db, title=title, artist=artist, album_title=album, release_year=release_year, mp3_data=mp3_data)
 
-        upload_folder = 'uploads'
-        os.makedirs(upload_folder, exist_ok=True)
-        file_path = os.path.join(upload_folder, file.filename)
-        with open(file_path, "wb") as f:
-            f.write(file.file.read())
-
-        save_music_details(db, title, artist, album, release_year, file.filename)
-
-        return {"message": "File successfully uploaded and details saved"}
+        print("return")
+        return { "File successfully uploaded and details saved"}
     except Exception as e:
         print("error", e)
+
 @app.get("/api/music", response_model=List[dict])
 async def list_songs(db: Session = Depends(get_db)):
     """
