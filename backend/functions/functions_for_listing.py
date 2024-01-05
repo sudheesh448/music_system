@@ -20,7 +20,8 @@ def get_all_songs(db: Session):
             "title": song.title,
             "artist": song.artist,
             "album": song.album.title if song.album else None,
-            "release_year": song.release_year
+            "release_year": song.release_year,
+            "favorite":song.favorite
         }
         for song in songs
     ]
