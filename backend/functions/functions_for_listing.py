@@ -5,10 +5,9 @@ def get_all_songs(db: Session):
     """
     Get a list of all songs in the database.
 
-    Parameters:
-    - db (Session): The database session.
+    
 
-    Returns:
+    RETURNS:
     - List[dict]: List of dictionaries representing each song's details.
     """
 
