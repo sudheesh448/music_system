@@ -10,6 +10,7 @@ def get_all_songs(db: Session):
 
     Returns:
     - List[dict]: List of dictionaries representing each song's details.
+    song_id, album_id,title,artist,album,release_year,favorite
     """
 
     songs = db.query(Music).all()
