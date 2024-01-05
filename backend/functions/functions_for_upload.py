@@ -9,10 +9,11 @@ def is_mp3_file(filename: str) -> bool:
     Function to check whether the uploaded file is .mp3 or not. 
     Checking by validating the file extension
 
-    Parameters:
-    - filename (str): The name of the file.
+    PARAMETERS:
+    ----------
+    
 
-    Returns:
+    RETURNS:
     - bool: True if the file has a .mp3 extension, False otherwise.
     """
     return filename.lower().endswith('.mp3')
@@ -25,11 +26,13 @@ def get_or_create_album(db: Session, album_title: str) -> Album:
     if the title is already present in the database it returns the particular existing Album
     else it creates a new raw and returns that Album
 
-    Parameters:
-    - db (Session): The database session.
-    - album_title (str): The title of the album.
 
-    Returns:
+    PARAMETERS:
+    -----------
+
+
+    RETURNS:
+    ---------
     - Album: The existing or newly created Album instance.
     """
     existing_album = db.query(Album).filter(Album.title == album_title).first()
@@ -50,11 +53,10 @@ def save_music_details(db: Session, **kwargs) -> None:
     if the album title is not none it calls the get_or_create_album method to create or get the album. 
     Then create a new entry in the database
 
-    Parameters:
-    - db (Session): The database session.
-    - kwargs (dict): A dictionary containing the details of the music.
+    PARAMETERS:
+    -title, artist, album_title, release_year, mp3_data
 
-    Returns:
+    RETURNS:
     - None
     """
 
