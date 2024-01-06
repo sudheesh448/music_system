@@ -80,7 +80,7 @@ async def list_albums(db: Session = Depends(get_db)):
     """
     try:
         albums = get_all_albums(db)
-        return albums
+        return JSONResponse(content=albums, status_code=200)
     except Exception as e:
         raise HTTPException(status_code=500, detail="Internal Server Error")
 
@@ -107,7 +107,7 @@ async def list_songs(db: Session = Depends(get_db)):
     
     try:
         songs = get_all_songs(db)
-        return songs
+        return JSONResponse(content=songs, status_code=200)
     
     except Exception as e:
         raise HTTPException(status_code=500, detail="Internal Server Error")
@@ -155,8 +155,7 @@ async def get_album_details(album_id: int, db: Session = Depends(get_db)):
                 "favorite":song.favorite
             } for song in songs]
         }
-
-        return album_details
+        return JSONResponse(content=album_details, status_code=200)
     except Exception as e:
         raise HTTPException(status_code=500, detail="Internal Server Error")
 
@@ -167,24 +166,32 @@ async def get_song_details(song_id: int, db: Session = Depends(get_db)):
     Get details of a specific song by its ID.
 
     PARAMETERS:
-    ----------
-    - song_id (int): The ID of the song.
+        - song_id (int): The ID of the song.
 
     RETURNS:
-    - dict: Dictionary representing the song's details.
-    id, title, artist, release_year, favorite
+        - dict: Dictionary representing the song's details.
+          The dictionary has the following keys:
+          - "id" (int): The unique identifier of the song.
+          - "title" (str): The title of the song.
+          - "artist" (str): The artist of the song.
+          - "release_year" (int): The release year of the song.
+          - "favorite" (bool): Indicates whether the song is marked as a favorite.
     """
-    song = get_song_by_id(db, song_id)
+    try:
+        song = get_song_by_id(db, song_id)
 
-    if song is None:
-        raise HTTPException(status_code=404, detail="Song not found")
+        if song is None:
+            raise HTTPException(status_code=404, detail="Song not found")
 
-    song_details = {
-        "id": song.id,
-        "title": song.title,
-        "artist": song.artist,
-        "release_year": song.release_year,
-        "favorite": song.favorite,
-    }
-
-    return song_details
+        song_details = {
+            "id": song.id,
+            "title": song.title,
+            "artist": song.artist,
+            "release_year": song.release_year,
+            "favorite": song.favorite,
+        }
+        return JSONResponse(content=song_details, status_code=200)
+    
+    except Exception as e:
+        print(f"An error occurred: {e}")
+        raise HTTPException(status_code=500, detail="Internal Server Error")
