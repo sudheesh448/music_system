@@ -36,5 +36,4 @@ def get_all_songs(db: Session):
         ]
     
     except Exception as e:
-        print(f"An error occurred: {e}")
         raise HTTPException(status_code=500, detail="Internal Server Error")
