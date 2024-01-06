@@ -199,5 +199,4 @@ async def get_song_details(song_id: int, db: Session = Depends(get_db)):
         return JSONResponse(content=song_details, status_code=200)
     
     except Exception as e:
-        print(f"An error occurred: {e}")
         raise HTTPException(status_code=500, detail="Internal Server Error")
