@@ -18,6 +18,12 @@ from backend.models import Music, Album
 app = FastAPI()
 
 def get_db():
+    """
+    Provides a database session for interacting with the database.
+
+    Yields:
+        Session: An instance of the database session. 
+    """
     db = SessionLocal()
     try:
         yield db
