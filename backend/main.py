@@ -3,6 +3,7 @@ import os
 from typing import Optional
 
 from fastapi import FastAPI, File, UploadFile, Form, HTTPException, Depends
+from fastapi.responses import JSONResponse
 from sqlalchemy.orm import Session
 
 from backend.database import SessionLocal, engine
@@ -35,23 +36,17 @@ async def upload_file(
 ):
     
     """
-    Handle the file upload and save music details to the database.\
+    Handle the file upload and save music details to the database.
     call the is_mp3_file method to check the file is mp3 or not
     if the file is mp3 then the file will be uploaded to the upload folder in the db and call the 
     save save_music_details method for saving the details.
 
-    Parameters:
-    - title (str): The title of the music.
-    - artist (str): The artist of the music.
-    - album (Optional[str]): The title of the album (can be None if no album is specified).
-    - release_year (int): The release year of the music.
-    - file (UploadFile): The uploaded MP3 file.
-    - db (Session): The database session.
+    PARAMETERS:
 
-    Returns:
-    - dict: A message indicating the success of the file upload and details save.
+    RETRUNS:
+        - A Json response and status code indicating the success or failure 
+        of the file upload and details save.
     """
-    print("here 123")
     try:
         if not is_mp3_file(file.filename):
             raise HTTPException(status_code=400, detail="Invalid file format. Only MP3 files are allowed.")
@@ -60,10 +55,12 @@ async def upload_file(
         
         save_music_details(db=db, title=title, artist=artist, album_title=album, release_year=release_year, mp3_data=mp3_data)
 
-        print("return")
-        return { "File successfully uploaded and details saved"}
-    except Exception as e:
-        print("error", e)
+        response_data = {"message": "File successfully uploaded and details saved"}
+        return JSONResponse(content=response_data, status_code=200)
+    
+    except Exception as unexpected_error:
+        return JSONResponse(content={"error": "Internal Server Error"}, status_code=500)
+
 
 
 @app.get("/api/albums", response_model=List[dict])
@@ -71,15 +68,21 @@ async def list_albums(db: Session = Depends(get_db)):
     """
     Get a list of all albums in the database.
 
-    -------------------------------
     PARAMETERS:
-    - db (Session): The database session.
+
 
     RETURNS:
-    - List[dict]: List of dictionaries representing each album's details.
+        List[Dict[str, any]]: List of dictionaries representing each album's details.
+        Each dictionary should have the following keys:
+           - "album_id": int
+           - "title": str
+           - "favorite": bool
     """
-    albums = get_all_albums(db)
-    return albums
+    try:
+        albums = get_all_albums(db)
+        return albums
+    except Exception as e:
+        raise HTTPException(status_code=500, detail="Internal Server Error")
 
     
 @app.get("/api/music", response_model=List[dict])
@@ -87,14 +90,21 @@ async def list_songs(db: Session = Depends(get_db)):
     """
     Get a list of all songs in the database.
 
-    Parameters:
-    - db (Session): The database session.
+    PARAMETERS:
+    
 
-    Returns:
-    - List[dict]: List of dictionaries representing each song's details.
+    RETURNS:
+        - List[dict]: List of dictionaries representing each song's details.
+          Each dictionary should have the following keys:
+          - "song_id": int - The unique identifier for the song.
+          - "album_id": int or None - The unique identifier for the album to which the song belongs.
+          - "title": str - The title of the song.
+          - "artist": str - The artist of the song.
+          - "album": str or None - The title of the album to which the song belongs.
+          - "release_year": int - The release year of the song.
+          - "favorite": bool - Indicates whether the song is marked as a favorite.
     """
-    albums = get_all_albums(db)
-    return albums
+    
     songs = get_all_songs(db)
     return songs
 
