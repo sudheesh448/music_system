@@ -42,12 +42,13 @@ async def get_song_details(song_id: int, db: Session = Depends(get_db)):
     """
     Get details of a specific song by its ID.
 
-    Parameters:
+    PARAMETERS:
+    ----------
     - song_id (int): The ID of the song.
-    - db (Session): The database session.
 
-    Returns:
+    RETURNS:
     - dict: Dictionary representing the song's details.
+    id, title, artist, release_year, favorite
     """
     song = get_song_by_id(db, song_id)
 
