@@ -105,8 +105,12 @@ async def list_songs(db: Session = Depends(get_db)):
           - "favorite": bool - Indicates whether the song is marked as a favorite.
     """
     
-    songs = get_all_songs(db)
-    return songs
+    try:
+        songs = get_all_songs(db)
+        return songs
+    
+    except Exception as e:
+        raise HTTPException(status_code=500, detail="Internal Server Error")
 
 @app.get("/api/albums/{album_id}", response_model=dict)
 async def get_album_details(album_id: int, db: Session = Depends(get_db)):
