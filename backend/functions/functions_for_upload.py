@@ -1,3 +1,4 @@
+import os
 from sqlalchemy.orm import Session
 from typing import Optional
 
@@ -5,6 +6,7 @@ from backend.database import SessionLocal
 from backend.models import Album, Music
 
 def is_mp3_file(filename: str) -> bool:
+
     """
     Function to check whether the uploaded file is .mp3 or not. 
     Checking by validating the file extension
@@ -44,9 +46,9 @@ def get_or_create_album(db: Session, album_title: str) -> Album:
         new_album = Album(title=album_title)
         db.add(new_album)
         db.commit()
-        db.refresh(new_album)
         return new_album
-
+    
+UPLOAD_FOLDER = 'uploads'
 def save_music_details(db: Session, **kwargs) -> None:
     """
     Save music details to the database.
@@ -69,13 +71,20 @@ def save_music_details(db: Session, **kwargs) -> None:
     else:
         album_id = None
 
+    mp3_file_name= kwargs.get("mp3_file_name")
+    mp3_file_path = os.path.join(UPLOAD_FOLDER,mp3_file_name)
+    mp3_data=kwargs.get("mp3_data")
+
+    with open(mp3_file_path, 'wb') as mp3_file:
+        mp3_file.write(mp3_data)
+
     new_music = Music(
         title=kwargs.get("title"),
         artist=kwargs.get("artist"),
         album_id=album_id,
         release_year=kwargs.get("release_year"),
-        mp3_data=kwargs.get("mp3_data")
+        mp3_file_name=mp3_file_name,
+        mp3_file_path=mp3_file_path,
     )
     db.add(new_music)
     db.commit()
-    db.refresh(new_music)
