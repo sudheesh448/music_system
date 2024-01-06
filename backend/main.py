@@ -114,42 +114,51 @@ async def list_songs(db: Session = Depends(get_db)):
 
 @app.get("/api/albums/{album_id}", response_model=dict)
 async def get_album_details(album_id: int, db: Session = Depends(get_db)):
-
-
-    """
-    api call for fetching the album details and associated songs in it
-    by using the album id
+    """"
+    API endpoint for fetching the details of an album and its associated songs.
 
     PARAMETERS:
+        - album_id (int): The unique identifier of the album.
 
     RETURNS:
-    --------
-    Returns id, title, favorite of albums
-    and id, title, artist, release_year,favorite of associated songs
+        - Dict: A dictionary representing the album details and associated songs.
+          The dictionary has the following keys:
+          - "id" (int): The unique identifier of the album.
+          - "title" (str): The title of the album.
+          - "favorite" (bool): Indicates whether the album is marked as a favorite.
+          - "songs" (List[Dict]): A list of dictionaries representing each associated song's details.
 
+            Each song dictionary has the following keys:
+            - "id" (int): The unique identifier of the song.
+            - "title" (str): The title of the song.
+            - "artist" (str): The artist of the song.
+            - "release_year" (int): The release year of the song.
+            - "favorite" (bool): Indicates whether the song is marked as a favorite.
     """
+    try:
+        album = db.query(Album).filter(Album.id == album_id).first()
 
-    album = db.query(Album).filter(Album.id == album_id).first()
+        if album is None:
+            raise HTTPException(status_code=404, detail="Album not found")
 
-    if album is None:
-        raise HTTPException(status_code=404, detail="Album not found")
+        songs = db.query(Music).filter(Music.album_id == album_id).all()
 
-    songs = db.query(Music).filter(Music.album_id == album_id).all()
+        album_details = {
+            "id": album.id,
+            "title": album.title,
+            "favorite": album.favorite,
+            "songs": [{
+                "id": song.id,
+                "title": song.title,
+                "artist": song.artist,
+                "release_year": song.release_year,
+                "favorite":song.favorite
+            } for song in songs]
+        }
 
-    album_details = {
-        "id": album.id,
-        "title": album.title,
-        "favorite": album.favorite,
-        "songs": [{
-            "id": song.id,
-            "title": song.title,
-            "artist": song.artist,
-            "release_year": song.release_year,
-            "favorite":song.favorite
-        } for song in songs]
-    }
-
-    return album_details
+        return album_details
+    except Exception as e:
+        raise HTTPException(status_code=500, detail="Internal Server Error")
 
 
 @app.get("/api/music/song/{song_id}", response_model=dict)
