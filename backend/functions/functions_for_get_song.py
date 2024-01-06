@@ -4,7 +4,6 @@ from sqlalchemy.orm import Session
 
 
 def get_song_by_id(db: Session, song_id: int):
-    
     """
     Fetches the details of a song by its ID from the database.
 

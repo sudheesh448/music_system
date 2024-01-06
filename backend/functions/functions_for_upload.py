@@ -9,7 +9,7 @@ def is_mp3_file(filename: str) -> bool:
     """
     Function to check whether the uploaded file is .mp3 or not. 
     Checking by validating the file extension
-
+    
     PARAMETERS:
     - filename (str): The name of the file.
     RETURNS:

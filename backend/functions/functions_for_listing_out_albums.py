@@ -6,8 +6,7 @@ from typing import List, Dict
 def get_all_albums(db: Session) -> List[Dict[str, any]]:
     """
     Get a list of all albums in the database.
-
-    -------------------------------
+    
     PARAMETERS:
       
 
