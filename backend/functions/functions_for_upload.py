@@ -1,4 +1,5 @@
 from fastapi import HTTPException
+import os
 from sqlalchemy.orm import Session
 from typing import Optional
 
@@ -6,6 +7,7 @@ from backend.database import SessionLocal
 from backend.models import Album, Music
 
 def is_mp3_file(filename: str) -> bool:
+
     """
     Function to check whether the uploaded file is .mp3 or not. 
     Checking by validating the file extension
