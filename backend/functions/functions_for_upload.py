@@ -32,23 +32,30 @@ def get_or_create_album(db: Session, album_title: str) -> Album:
     Else, it creates a new row and returns that Album.
 
     PARAMETERS:
+        - db (Session): The database session.
         - album_title (str): The title of the album.
 
     RETURNS:
         - Album: The existing or newly created Album instance.
     """
-    existing_album = db.query(Album).filter(Album.title == album_title).first()
-    print("album")
-    if existing_album:
-        return existing_album
-    else:
-        print("here hdfk")
-        new_album = Album(title=album_title)
-        db.add(new_album)
-        db.commit()
-        return new_album
+    try:
+        existing_album = db.query(Album).filter(Album.title == album_title).first()
+
+        if existing_album:
+            return existing_album
+        else:
+            new_album = Album(title=album_title)
+            db.add(new_album)
+            db.commit()
+            return new_album
     
+    except Exception as e:
+        print(f"An error occurred: {e}")
+        raise HTTPException(status_code=500, detail="Internal Server Error")
+    
+
 UPLOAD_FOLDER = 'uploads'
+
 def save_music_details(db: Session, **kwargs) -> None:
     """
     Save music details to the database.
@@ -60,6 +67,7 @@ def save_music_details(db: Session, **kwargs) -> None:
         - artist (str): The artist of the music.
         - album_title (str): The title of the album (can be None).
         - release_year (int): The release year of the music.
+        - mp3_file_name: The name of the MP3 file.
         - mp3_data: The MP3 data.
 
     RETURNS:
@@ -73,23 +81,23 @@ def save_music_details(db: Session, **kwargs) -> None:
         else:
             album_id = None
 
-    mp3_file_name= kwargs.get("mp3_file_name")
-    mp3_file_path = os.path.join(UPLOAD_FOLDER,mp3_file_name)
-    mp3_data=kwargs.get("mp3_data")
+        mp3_file_name = kwargs.get("mp3_file_name")
+        mp3_file_path = os.path.join(UPLOAD_FOLDER, mp3_file_name)
+        mp3_data = kwargs.get("mp3_data")
 
-    with open(mp3_file_path, 'wb') as mp3_file:
-        mp3_file.write(mp3_data)
+        with open(mp3_file_path, 'wb') as mp3_file:
+            mp3_file.write(mp3_data)
 
-    new_music = Music(
-        title=kwargs.get("title"),
-        artist=kwargs.get("artist"),
-        album_id=album_id,
-        release_year=kwargs.get("release_year"),
-        mp3_file_name=mp3_file_name,
-        mp3_file_path=mp3_file_path,
-    )
-    db.add(new_music)
-    db.commit()
+        new_music = Music(
+            title=kwargs.get("title"),
+            artist=kwargs.get("artist"),
+            album_id=album_id,
+            release_year=kwargs.get("release_year"),
+            mp3_file_name=mp3_file_name,
+            mp3_file_path=mp3_file_path,
+        )
+        db.add(new_music)
+        db.commit()
 
     except Exception as e:
         raise HTTPException(status_code=500, detail="Internal Server Error")
