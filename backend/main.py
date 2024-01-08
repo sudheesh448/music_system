@@ -236,7 +236,6 @@ async def favorite_music(song_id: int, db: Session = Depends(get_db)):
             "artist": song.artist,
             "release_year": song.release_year,
             "favorite": song.favorite,
-            "music_file_path": song.music_file_path,
         }
 
         return JSONResponse(content=updated_song_details, status_code=200)
