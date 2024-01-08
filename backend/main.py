@@ -3,15 +3,17 @@ import os
 from typing import Optional
 
 from fastapi import FastAPI, File, UploadFile, Form, HTTPException, Depends
-from fastapi.responses import JSONResponse
+from fastapi.responses import JSONResponse, StreamingResponse
 from sqlalchemy.orm import Session
+from pathlib import Path
+from typing import List
 
 from backend.database import SessionLocal, engine
 from backend.functions.functions_for_get_song import get_song_by_id
 from backend.functions.functions_for_listing_out_albums import get_all_albums
 from backend.functions.functions_for_upload import is_mp3_file, save_music_details
 from backend.functions.functions_for_listing import get_all_songs
-from typing import List
+
 from backend.models import Music, Album
 
 
@@ -172,7 +174,6 @@ async def get_song_details(song_id: int, db: Session = Depends(get_db)):
     Get details of a specific song by its ID.
 
     PARAMETERS:
-        - song_id (int): The ID of the song.
 
     RETURNS:
         - dict: Dictionary representing the song's details.
@@ -189,14 +190,9 @@ async def get_song_details(song_id: int, db: Session = Depends(get_db)):
         if song is None:
             raise HTTPException(status_code=404, detail="Song not found")
 
-        song_details = {
-            "id": song.id,
-            "title": song.title,
-            "artist": song.artist,
-            "release_year": song.release_year,
-            "favorite": song.favorite,
-        }
-        return JSONResponse(content=song_details, status_code=200)
+        return JSONResponse(content=song, status_code=200)
     
-    except Exception as e:
+    except:
         raise HTTPException(status_code=500, detail="Internal Server Error")
+
+

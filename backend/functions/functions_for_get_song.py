@@ -8,7 +8,6 @@ def get_song_by_id(db: Session, song_id: int):
     Fetches the details of a song by its ID from the database.
 
     PARAMETERS:
-        - song_id (int): The ID of the song.
 
     RETURNS:
         - dict: A dictionary representing the song details. The dictionary has the following keys:
@@ -19,20 +18,21 @@ def get_song_by_id(db: Session, song_id: int):
           - "favorite" (bool): Indicates whether the song is marked as a favorite.
     """
 
-    try:
-        song = db.query(Music).filter(Music.id == song_id).first()
+    # try:
+    song = db.query(Music).filter(Music.id == song_id).first()
 
-        if song is None:
-            raise HTTPException(status_code=404, detail="Song not found")
+    if song is None:
+        raise HTTPException(status_code=404, detail="Song not found")
 
-        return {
-            "id": song.id,
-            "title": song.title,
-            "artist": song.artist,
-            "release_year": song.release_year,
-            "favorite": song.favorite,
-        }
+    return {
+        "id": song.id,
+        "title": song.title,
+        "artist": song.artist,
+        "album":song.album_id,
+        "release_year": song.release_year,
+        "favorite": song.favorite,
+        "music_file_path":song.music_file_path
+    }
     
-    except Exception as e:
-        print(f"An error occurred: {e}")
-        raise HTTPException(status_code=500, detail="Internal Server Error")
+    # except:
+    raise HTTPException(status_code=500, detail="Internal Server Error")
