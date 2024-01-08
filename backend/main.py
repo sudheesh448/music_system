@@ -214,7 +214,7 @@ async def stream_music_file(song_id: int, db: Session = Depends(get_db)):
         raise HTTPException(status_code=500, detail="Internal Server Error")
 
 @app.patch("/api/music/song/{song_id}/favorite")
-async def favorite_music(song_id: int, db: Session = Depends(get_db)):
+async def favorite_music(song_id: int, db: Session = Depends(get_db))-> JSONResponse:
     """
     Mark a song as a favorite.
 
