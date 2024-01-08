@@ -49,8 +49,6 @@ async def upload_file(
     if the file is mp3 then the file will be uploaded to the upload folder in the db and call the 
     save save_music_details method for saving the details.
 
-    PARAMETERS:
-
     RETRUNS:
         - A Json response and status code indicating the success or failure 
         of the file upload and details save.
@@ -76,9 +74,6 @@ async def list_albums(db: Session = Depends(get_db)):
     """
     Get a list of all albums in the database.
 
-    PARAMETERS:
-
-
     RETURNS:
         List[Dict[str, any]]: List of dictionaries representing each album's details.
         Each dictionary should have the following keys:
@@ -97,9 +92,6 @@ async def list_albums(db: Session = Depends(get_db)):
 async def list_songs(db: Session = Depends(get_db)):
     """
     Get a list of all songs in the database.
-
-    PARAMETERS:
-    
 
     RETURNS:
         - List[dict]: List of dictionaries representing each song's details.
@@ -173,8 +165,6 @@ async def get_song_details(song_id: int, db: Session = Depends(get_db)):
     """
     Get details of a specific song by its ID.
 
-    PARAMETERS:
-
     RETURNS:
         - dict: Dictionary representing the song's details.
           The dictionary has the following keys:
@@ -200,8 +190,6 @@ async def get_song_details(song_id: int, db: Session = Depends(get_db)):
 async def stream_music_file(song_id: int, db: Session = Depends(get_db)):
     """
     Stream the music file associated with a given song ID.
-
-    PARAMETERS:
 
     RETURNS:
         - StreamingResponse: A streaming response containing the music file.

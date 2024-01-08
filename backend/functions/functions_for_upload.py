@@ -12,8 +12,6 @@ def is_mp3_file(filename: str) -> bool:
     Function to check whether the uploaded file is .mp3 or not. 
     Checking by validating the file extension
     
-    PARAMETERS:
-    
     RETURNS:
         - bool: True if the file has a .mp3 extension, False otherwise.
     """
@@ -30,8 +28,6 @@ def get_or_create_album(db: Session, album_title: str) -> Album:
     Takes album title as a parameter.
     If the title is already present in the database, it returns the particular existing Album.
     Else, it creates a new row and returns that Album.
-
-    PARAMETERS:
 
     RETURNS:
         - Album: The existing or newly created Album instance.
