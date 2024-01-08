@@ -1,6 +1,6 @@
 # main.py
 import os
-from typing import Optional
+from typing import Dict, Optional
 
 from fastapi import FastAPI, File, UploadFile, Form, HTTPException, Depends,status
 from fastapi.responses import JSONResponse, StreamingResponse
@@ -33,7 +33,7 @@ def get_db():
         db.close()
 
 
-@app.post("/api/upload")
+@app.post("/api/music/upload")
 async def upload_file(
     title: str = Form(...),
     artist: str = Form(...),
@@ -41,7 +41,7 @@ async def upload_file(
     release_year: int = Form(...),
     file: UploadFile = File(...),
     db: Session = Depends(get_db)
-):
+)-> JSONResponse:
     
     """
     Handle the file upload and save music details to the database.
@@ -69,8 +69,8 @@ async def upload_file(
 
 
 
-@app.get("/api/albums", response_model=List[dict])
-async def list_albums(db: Session = Depends(get_db)):
+@app.get("/api/music/albums", response_model=List[dict])
+async def list_albums(db: Session = Depends(get_db))-> JSONResponse:
     """
     Get a list of all albums in the database.
 
@@ -88,8 +88,8 @@ async def list_albums(db: Session = Depends(get_db)):
         raise HTTPException(status_code=500, detail="Internal Server Error")
 
     
-@app.get("/api/music", response_model=List[dict])
-async def list_songs(db: Session = Depends(get_db)):
+@app.get("/api/music/songs", response_model=List[dict])
+async def list_songs(db: Session = Depends(get_db))-> JSONResponse:
     """
     Get a list of all songs in the database.
 
@@ -112,8 +112,8 @@ async def list_songs(db: Session = Depends(get_db)):
     except Exception as e:
         raise HTTPException(status_code=500, detail="Internal Server Error")
 
-@app.get("/api/albums/{album_id}", response_model=dict)
-async def get_album_details(album_id: int, db: Session = Depends(get_db)):
+@app.get("/api/music/albums/{album_id}", response_model=dict)
+async def get_album_details(album_id: int, db: Session = Depends(get_db))-> JSONResponse:
     """"
     API endpoint for fetching the details of an album and its associated songs.
 
@@ -161,7 +161,7 @@ async def get_album_details(album_id: int, db: Session = Depends(get_db)):
 
 
 @app.get("/api/music/song/{song_id}", response_model=dict)
-async def get_song_details(song_id: int, db: Session = Depends(get_db)):
+async def get_song_details(song_id: int, db: Session = Depends(get_db))-> JSONResponse:
     """
     Get details of a specific song by its ID.
 
@@ -187,7 +187,7 @@ async def get_song_details(song_id: int, db: Session = Depends(get_db)):
 
 
 @app.get("/api/music/song/{song_id}/stream")
-async def stream_music_file(song_id: int, db: Session = Depends(get_db)):
+async def stream_music_file(song_id: int, db: Session = Depends(get_db))-> StreamingResponse:
     """
     Stream the music file associated with a given song ID.
 
