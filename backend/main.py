@@ -196,3 +196,31 @@ async def get_song_details(song_id: int, db: Session = Depends(get_db)):
         raise HTTPException(status_code=500, detail="Internal Server Error")
 
 
+@app.get("/api/music/song/{song_id}/stream")
+async def stream_music_file(song_id: int, db: Session = Depends(get_db)):
+    """
+    Stream the music file associated with a given song ID.
+
+    PARAMETERS:
+
+    RETURNS:
+        - StreamingResponse: A streaming response containing the music file.
+    """
+
+    try:
+        file_path = db.query(Music.music_file_path).filter(Music.id == song_id).scalar()
+
+        if file_path is None:
+            raise HTTPException(status_code=404, detail="Song not found")
+        
+        if not Path(file_path).is_file():
+            raise HTTPException(status_code=404, detail=f"File not found: {file_path}")
+    
+        return StreamingResponse(open(file_path, "rb"), media_type="audio/mpeg")
+    
+    except HTTPException as e:
+        if e.status_code == 404:
+            print(f"404 Error: {e.detail}")
+        raise
+    except Exception as e:
+        raise HTTPException(status_code=500, detail="Internal Server Error")
