@@ -208,7 +208,7 @@ async def stream_music_file(song_id: int, db: Session = Depends(get_db)):
     
     except HTTPException as e:
         if e.status_code == 404:
-            print(f"404 Error: {e.detail}")
+            raise HTTPException(status_code=404, detail=f"{e.detail}")
         raise
     except Exception as e:
         raise HTTPException(status_code=500, detail="Internal Server Error")
