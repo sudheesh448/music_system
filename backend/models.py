@@ -1,7 +1,7 @@
 # models.py
 from sqlalchemy import Column, Integer, LargeBinary, String, Boolean, ForeignKey
 from sqlalchemy.orm import relationship
-from . database import Base
+from .database import Base
 
 class Album(Base):
     __tablename__ = 'albums'
@@ -19,7 +19,8 @@ class Music(Base):
     artist = Column(String, index=True, nullable=False)
     album_id = Column(Integer, ForeignKey('albums.id', ondelete='CASCADE'), nullable=True)
     release_year = Column(Integer)
-    mp3_file_name = Column(String, nullable=False)
-    mp3_file_path = Column(String, nullable=False)
+    music_file_name = Column(String, nullable=False)
+    music_file_path = Column(String, nullable=False)
     favorite = Column(Boolean, default=False)
+    album = relationship('Album', back_populates='songs')
     
