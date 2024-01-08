@@ -302,5 +302,38 @@ async def delete_song(song_id: int, db: Session = Depends(get_db)) -> JSONRespon
     except:
         raise HTTPException(status_code=500, detail=f"Internal Server Error")
 
+@app.delete("/api/music/album/{album_id}")
+async def delete_album(album_id: int, db: Session = Depends(get_db)) -> JSONResponse:
+    """
+    Delete an album by its ID.
 
+    RETURNS:
+        - JSONResponse: A JSON response indicating the success of the deletion.
+    """
+    try:
+        album = db.query(Album).filter(Album.id == album_id).first()
+
+        if album is None:
+            raise HTTPException(status_code=404, detail="Album not found")
+
+        for song in album.songs:
+            file_path = song.music_file_path
+            if file_path:
+                directory = Path(file_path).parent
+                directory.mkdir(parents=True, exist_ok=True)
+                if os.path.exists(file_path):
+                    os.remove(file_path)
+
+            db.delete(song)
+        db.delete(album)
+        db.commit()
+
+        return JSONResponse(content={"message": f"Album with ID {album_id} has been deleted successfully."}, status_code=200)
+
+    except HTTPException as e:
+        if e.status_code == 404:
+            raise HTTPException(status_code=404, detail=f"{e.detail}")
+        raise
+    except Exception as ex:
+        raise HTTPException(status_code=500, detail=f"Internal Server Error")
 
