@@ -69,7 +69,7 @@ async def upload_file(
 
 
 
-@app.get("/api/music/albums", response_model=List[dict])
+@app.get("/api/music/albums")
 async def list_albums(db: Session = Depends(get_db))-> JSONResponse:
     """
     Get a list of all albums in the database.
@@ -88,7 +88,7 @@ async def list_albums(db: Session = Depends(get_db))-> JSONResponse:
         raise HTTPException(status_code=500, detail="Internal Server Error")
 
     
-@app.get("/api/music/songs", response_model=List[dict])
+@app.get("/api/music/songs")
 async def list_songs(db: Session = Depends(get_db))-> JSONResponse:
     """
     Get a list of all songs in the database.
@@ -112,7 +112,7 @@ async def list_songs(db: Session = Depends(get_db))-> JSONResponse:
     except Exception as e:
         raise HTTPException(status_code=500, detail="Internal Server Error")
 
-@app.get("/api/music/albums/{album_id}", response_model=dict)
+@app.get("/api/music/albums/{album_id}")
 async def get_album_details(album_id: int, db: Session = Depends(get_db))-> JSONResponse:
     """"
     API endpoint for fetching the details of an album and its associated songs.
@@ -160,7 +160,7 @@ async def get_album_details(album_id: int, db: Session = Depends(get_db))-> JSON
         raise HTTPException(status_code=500, detail="Internal Server Error")
 
 
-@app.get("/api/music/song/{song_id}", response_model=dict)
+@app.get("/api/music/song/{song_id}")
 async def get_song_details(song_id: int, db: Session = Depends(get_db))-> JSONResponse:
     """
     Get details of a specific song by its ID.
