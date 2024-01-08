@@ -3,15 +3,17 @@ import os
 from typing import Optional
 
 from fastapi import FastAPI, File, UploadFile, Form, HTTPException, Depends
-from fastapi.responses import JSONResponse
+from fastapi.responses import JSONResponse, StreamingResponse
 from sqlalchemy.orm import Session
+from pathlib import Path
+from typing import List
 
 from backend.database import SessionLocal, engine
 from backend.functions.functions_for_get_song import get_song_by_id
 from backend.functions.functions_for_listing_out_albums import get_all_albums
 from backend.functions.functions_for_upload import is_mp3_file, save_music_details
 from backend.functions.functions_for_listing import get_all_songs
-from typing import List
+
 from backend.models import Music, Album
 
 
@@ -47,8 +49,6 @@ async def upload_file(
     if the file is mp3 then the file will be uploaded to the upload folder in the db and call the 
     save save_music_details method for saving the details.
 
-    PARAMETERS:
-
     RETRUNS:
         - A Json response and status code indicating the success or failure 
         of the file upload and details save.
@@ -74,9 +74,6 @@ async def list_albums(db: Session = Depends(get_db)):
     """
     Get a list of all albums in the database.
 
-    PARAMETERS:
-
-
     RETURNS:
         List[Dict[str, any]]: List of dictionaries representing each album's details.
         Each dictionary should have the following keys:
@@ -95,9 +92,6 @@ async def list_albums(db: Session = Depends(get_db)):
 async def list_songs(db: Session = Depends(get_db)):
     """
     Get a list of all songs in the database.
-
-    PARAMETERS:
-    
 
     RETURNS:
         - List[dict]: List of dictionaries representing each song's details.
@@ -171,9 +165,6 @@ async def get_song_details(song_id: int, db: Session = Depends(get_db)):
     """
     Get details of a specific song by its ID.
 
-    PARAMETERS:
-        - song_id (int): The ID of the song.
-
     RETURNS:
         - dict: Dictionary representing the song's details.
           The dictionary has the following keys:
@@ -189,14 +180,35 @@ async def get_song_details(song_id: int, db: Session = Depends(get_db)):
         if song is None:
             raise HTTPException(status_code=404, detail="Song not found")
 
-        song_details = {
-            "id": song.id,
-            "title": song.title,
-            "artist": song.artist,
-            "release_year": song.release_year,
-            "favorite": song.favorite,
-        }
-        return JSONResponse(content=song_details, status_code=200)
+        return JSONResponse(content=song, status_code=200)
     
+    except:
+        raise HTTPException(status_code=500, detail="Internal Server Error")
+
+
+@app.get("/api/music/song/{song_id}/stream")
+async def stream_music_file(song_id: int, db: Session = Depends(get_db)):
+    """
+    Stream the music file associated with a given song ID.
+
+    RETURNS:
+        - StreamingResponse: A streaming response containing the music file.
+    """
+
+    try:
+        file_path = db.query(Music.music_file_path).filter(Music.id == song_id).scalar()
+
+        if file_path is None:
+            raise HTTPException(status_code=404, detail="Song not found")
+        
+        if not Path(file_path).is_file():
+            raise HTTPException(status_code=404, detail=f"File not found: {file_path}")
+    
+        return StreamingResponse(open(file_path, "rb"), media_type="audio/mpeg")
+    
+    except HTTPException as e:
+        if e.status_code == 404:
+            print(f"404 Error: {e.detail}")
+        raise
     except Exception as e:
         raise HTTPException(status_code=500, detail="Internal Server Error")
