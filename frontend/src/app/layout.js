@@ -1,8 +1,8 @@
 import { Inter } from "next/font/google";
 import "./globals.css";
 import Sidebar from "./components/Sidebar/SidenavBar";
-import MusicCard from "./components/MusicCard";
-
+import bg from "../../public/bg.jpg"
+import bg2 from "../../public/bg-2.jpg"
 const inter = Inter({ subsets: ["latin"] });
 
 export const metadata = {
@@ -13,7 +13,8 @@ export const metadata = {
 export default function RootLayout({ children }) {
   return (
     <html lang="en">
-      <body className={inter.className + " bg-gradient-to-r from-violet-500 to-purple-500"}>
+      <body className={inter.className + " relative bg-gradient-to-r text-white from-violet-500 to-purple-500"} style={{backgroundImage : `url(${bg2.src})` }}>
+        <div className="absolute h-screen -z-10 w-full bg-gradient-to-t from-black from-40%"></div>
         <div className=" overflow-hidden rounded-[0.5rem] ">
           <div className="md:hidden">
             <img
