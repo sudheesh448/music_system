@@ -2,7 +2,7 @@
 import os
 from typing import Optional
 
-from fastapi import FastAPI, File, UploadFile, Form, HTTPException, Depends
+from fastapi import FastAPI, File, UploadFile, Form, HTTPException, Depends,status
 from fastapi.responses import JSONResponse, StreamingResponse
 from sqlalchemy.orm import Session
 from pathlib import Path
@@ -210,5 +210,39 @@ async def stream_music_file(song_id: int, db: Session = Depends(get_db)):
         if e.status_code == 404:
             raise HTTPException(status_code=404, detail=f"{e.detail}")
         raise
-    except Exception as e:
+    except:
+        raise HTTPException(status_code=500, detail="Internal Server Error")
+
+@app.patch("/api/music/song/{song_id}/favorite")
+async def favorite_music(song_id: int, db: Session = Depends(get_db)):
+    """
+    Mark a song as a favorite.
+
+    RETURNS:
+        - JSONResponse: A JSON response containing a success message and the song details.
+    """
+    try:
+        song = db.query(Music).filter(Music.id == song_id).first()
+
+        if not song:
+            raise HTTPException(status_code=404, detail="Song not found")
+
+        song.favorite = not song.favorite
+        db.commit()
+
+        updated_song_details = {
+            "id": song.id,
+            "title": song.title,
+            "artist": song.artist,
+            "release_year": song.release_year,
+            "favorite": song.favorite,
+            "music_file_path": song.music_file_path,
+        }
+
+        return JSONResponse(content=updated_song_details, status_code=200)
+    except HTTPException as e:
+        if e.status_code == 404:
+            raise HTTPException(status_code=404, detail=f"{e.detail}")
+        raise
+    except:
         raise HTTPException(status_code=500, detail="Internal Server Error")
