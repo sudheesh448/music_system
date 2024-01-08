@@ -2,6 +2,7 @@ from fastapi import HTTPException
 import os
 from sqlalchemy.orm import Session
 from typing import Optional
+from pathlib import Path
 
 from backend.database import SessionLocal
 from backend.models import Album, Music
@@ -32,15 +33,16 @@ def get_or_create_album(db: Session, album_title: str) -> Album:
     Else, it creates a new row and returns that Album.
 
     PARAMETERS:
-        - db (Session): The database session.
         - album_title (str): The title of the album.
 
     RETURNS:
         - Album: The existing or newly created Album instance.
     """
     try:
+        print(album_title)
+        print("existing")
         existing_album = db.query(Album).filter(Album.title == album_title).first()
-
+        print("existing")
         if existing_album:
             return existing_album
         else:
@@ -48,13 +50,9 @@ def get_or_create_album(db: Session, album_title: str) -> Album:
             db.add(new_album)
             db.commit()
             return new_album
-    
+        
     except Exception as e:
-        print(f"An error occurred: {e}")
         raise HTTPException(status_code=500, detail="Internal Server Error")
-    
-
-UPLOAD_FOLDER = 'uploads'
 
 def save_music_details(db: Session, **kwargs) -> None:
     """
@@ -67,7 +65,6 @@ def save_music_details(db: Session, **kwargs) -> None:
         - artist (str): The artist of the music.
         - album_title (str): The title of the album (can be None).
         - release_year (int): The release year of the music.
-        - mp3_file_name: The name of the MP3 file.
         - mp3_data: The MP3 data.
 
     RETURNS:
@@ -75,29 +72,35 @@ def save_music_details(db: Session, **kwargs) -> None:
     """
     try:
         album_title = kwargs.get("album_title")
+        print(album_title)
+
+        music_folder = "uploads"
+        Path(music_folder).mkdir(parents=True, exist_ok=True)
+
+        music_file_name = f"{kwargs.get('title')}_{kwargs.get('artist')}.mp3"
+        music_file_path = os.path.join(music_folder, music_file_name)
+
+        with open(music_file_path, "wb") as music_file:
+            music_file.write(kwargs.get("mp3_data"))
+        
         if album_title is not None:
             album_db = get_or_create_album(db, album_title)
             album_id = album_db.id
         else:
             album_id = None
-
-        mp3_file_name = kwargs.get("mp3_file_name")
-        mp3_file_path = os.path.join(UPLOAD_FOLDER, mp3_file_name)
-        mp3_data = kwargs.get("mp3_data")
-
-        with open(mp3_file_path, 'wb') as mp3_file:
-            mp3_file.write(mp3_data)
+        print("2",album_title)
 
         new_music = Music(
-            title=kwargs.get("title"),
-            artist=kwargs.get("artist"),
-            album_id=album_id,
-            release_year=kwargs.get("release_year"),
-            mp3_file_name=mp3_file_name,
-            mp3_file_path=mp3_file_path,
-        )
+                title=kwargs.get("title"),
+                artist=kwargs.get("artist"),
+                album_id=album_id,
+                release_year=kwargs.get("release_year"),
+                music_file_name=music_file_name,
+                music_file_path=music_file_path
+            )
+
         db.add(new_music)
         db.commit()
 
     except Exception as e:
-        raise HTTPException(status_code=500, detail="Internal Server Error")
+        raise HTTPException(status_code=500, detail="Internal Server Errorer")
