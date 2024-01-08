@@ -55,12 +55,12 @@ async def upload_file(
     """
     try:
         if not is_mp3_file(file.filename):
-            raise HTTPException(status_code=400, detail="Invalid file format. Only MP3 files are allowed.")
-        
+                raise HTTPException(status_code=400, detail="Invalid file format. Only MP3 files are allowed.")
+            
         mp3_data = file.file.read()
-        
+            
         save_music_details(db=db, title=title, artist=artist, album_title=album, release_year=release_year, mp3_data=mp3_data)
-
+        print("here root")
         response_data = {"message": "File successfully uploaded and details saved"}
         return JSONResponse(content=response_data, status_code=200)
     
