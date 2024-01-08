@@ -1,8 +1,8 @@
 # main.py
 import os
-from typing import Optional
+from typing import Dict, Optional
 
-from fastapi import FastAPI, File, UploadFile, Form, HTTPException, Depends
+from fastapi import FastAPI, File, UploadFile, Form, HTTPException, Depends,status
 from fastapi.responses import JSONResponse, StreamingResponse
 from sqlalchemy.orm import Session
 from pathlib import Path
@@ -33,7 +33,7 @@ def get_db():
         db.close()
 
 
-@app.post("/api/upload")
+@app.post("/api/music/upload")
 async def upload_file(
     title: str = Form(...),
     artist: str = Form(...),
@@ -41,7 +41,7 @@ async def upload_file(
     release_year: int = Form(...),
     file: UploadFile = File(...),
     db: Session = Depends(get_db)
-):
+)-> JSONResponse:
     
     """
     Handle the file upload and save music details to the database.
@@ -69,8 +69,8 @@ async def upload_file(
 
 
 
-@app.get("/api/albums", response_model=List[dict])
-async def list_albums(db: Session = Depends(get_db)):
+@app.get("/api/music/albums")
+async def list_albums(db: Session = Depends(get_db))-> JSONResponse:
     """
     Get a list of all albums in the database.
 
@@ -88,8 +88,8 @@ async def list_albums(db: Session = Depends(get_db)):
         raise HTTPException(status_code=500, detail="Internal Server Error")
 
     
-@app.get("/api/music", response_model=List[dict])
-async def list_songs(db: Session = Depends(get_db)):
+@app.get("/api/music/songs")
+async def list_songs(db: Session = Depends(get_db))-> JSONResponse:
     """
     Get a list of all songs in the database.
 
@@ -112,8 +112,8 @@ async def list_songs(db: Session = Depends(get_db)):
     except Exception as e:
         raise HTTPException(status_code=500, detail="Internal Server Error")
 
-@app.get("/api/albums/{album_id}", response_model=dict)
-async def get_album_details(album_id: int, db: Session = Depends(get_db)):
+@app.get("/api/music/albums/{album_id}")
+async def get_album_details(album_id: int, db: Session = Depends(get_db))-> JSONResponse:
     """"
     API endpoint for fetching the details of an album and its associated songs.
 
@@ -160,8 +160,8 @@ async def get_album_details(album_id: int, db: Session = Depends(get_db)):
         raise HTTPException(status_code=500, detail="Internal Server Error")
 
 
-@app.get("/api/music/song/{song_id}", response_model=dict)
-async def get_song_details(song_id: int, db: Session = Depends(get_db)):
+@app.get("/api/music/song/{song_id}")
+async def get_song_details(song_id: int, db: Session = Depends(get_db))-> JSONResponse:
     """
     Get details of a specific song by its ID.
 
@@ -173,21 +173,40 @@ async def get_song_details(song_id: int, db: Session = Depends(get_db)):
           - "artist" (str): The artist of the song.
           - "release_year" (int): The release year of the song.
           - "favorite" (bool): Indicates whether the song is marked as a favorite.
+          - "album id" (int) : Indicates the ID of the particular album.
+          - "album name" (str): Indicates the name of the album
     """
     try:
-        song = get_song_by_id(db, song_id)
+        song = db.query(Music).filter(Music.id == song_id).first()
 
         if song is None:
             raise HTTPException(status_code=404, detail="Song not found")
+        
+        album_id = song.album_id
+        album_title = None
+        if album_id:
+            album = db.query(Album).filter(Album.id == album_id).first()
+            if album:
+                album_title = album.title
 
-        return JSONResponse(content=song, status_code=200)
+        song_details = {
+            "id": song.id,
+            "title": song.title,
+            "artist": song.artist,
+            "release_year": song.release_year,
+            "favorite": song.favorite,
+            "album_id": album_id,
+            "album_title": album_title,
+        }
+
+        return JSONResponse(content=song_details, status_code=200)
     
     except:
         raise HTTPException(status_code=500, detail="Internal Server Error")
 
 
 @app.get("/api/music/song/{song_id}/stream")
-async def stream_music_file(song_id: int, db: Session = Depends(get_db)):
+async def stream_music_file(song_id: int, db: Session = Depends(get_db))-> StreamingResponse:
     """
     Stream the music file associated with a given song ID.
 
@@ -208,7 +227,40 @@ async def stream_music_file(song_id: int, db: Session = Depends(get_db)):
     
     except HTTPException as e:
         if e.status_code == 404:
-            print(f"404 Error: {e.detail}")
+            raise HTTPException(status_code=404, detail=f"{e.detail}")
         raise
-    except Exception as e:
+    except:
+        raise HTTPException(status_code=500, detail="Internal Server Error")
+
+@app.patch("/api/music/song/{song_id}/favorite")
+async def favorite_music(song_id: int, db: Session = Depends(get_db))-> JSONResponse:
+    """
+    Mark a song as a favorite.
+
+    RETURNS:
+        - JSONResponse: A JSON response containing a success message and the song details.
+    """
+    try:
+        song = db.query(Music).filter(Music.id == song_id).first()
+
+        if not song:
+            raise HTTPException(status_code=404, detail="Song not found")
+
+        song.favorite = not song.favorite
+        db.commit()
+
+        updated_song_details = {
+            "id": song.id,
+            "title": song.title,
+            "artist": song.artist,
+            "release_year": song.release_year,
+            "favorite": song.favorite,
+        }
+
+        return JSONResponse(content=updated_song_details, status_code=200)
+    except HTTPException as e:
+        if e.status_code == 404:
+            raise HTTPException(status_code=404, detail=f"{e.detail}")
+        raise
+    except:
         raise HTTPException(status_code=500, detail="Internal Server Error")
