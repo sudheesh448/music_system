@@ -22,15 +22,7 @@ def get_song_by_id(db: Session, song_id: int):
         if song is None:
             raise HTTPException(status_code=404, detail="Song not found")
 
-        return {
-            "id": song.id,
-            "title": song.title,
-            "artist": song.artist,
-            "album":song.album_id,
-            "release_year": song.release_year,
-            "favorite": song.favorite,
-            "music_file_path":song.music_file_path
-        }
+        return song
     
     except:
         raise HTTPException(status_code=500, detail="Internal Server Error")

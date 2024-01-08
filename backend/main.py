@@ -173,14 +173,33 @@ async def get_song_details(song_id: int, db: Session = Depends(get_db))-> JSONRe
           - "artist" (str): The artist of the song.
           - "release_year" (int): The release year of the song.
           - "favorite" (bool): Indicates whether the song is marked as a favorite.
+          - "album id" (int) : Indicates the ID of the particular album.
+          - "album name" (str): Indicates the name of the album
     """
     try:
-        song = get_song_by_id(db, song_id)
+        song = db.query(Music).filter(Music.id == song_id).first()
 
         if song is None:
             raise HTTPException(status_code=404, detail="Song not found")
+        
+        album_id = song.album_id
+        album_title = None
+        if album_id:
+            album = db.query(Album).filter(Album.id == album_id).first()
+            if album:
+                album_title = album.title
 
-        return JSONResponse(content=song, status_code=200)
+        song_details = {
+            "id": song.id,
+            "title": song.title,
+            "artist": song.artist,
+            "release_year": song.release_year,
+            "favorite": song.favorite,
+            "album_id": album_id,
+            "album_title": album_title,
+        }
+
+        return JSONResponse(content=song_details, status_code=200)
     
     except:
         raise HTTPException(status_code=500, detail="Internal Server Error")
