@@ -3,7 +3,7 @@ from sqlalchemy.orm import Session
 from backend.models import Album
 from typing import List, Dict
 
-def get_all_albums(db: Session) -> List[Dict[str, any]]:
+def get_all_albums(db: Session, page: int = 1, size: int = 10) -> List[Dict[str, any]]:
     """
     Get a list of all albums in the database.
 
@@ -16,7 +16,8 @@ def get_all_albums(db: Session) -> List[Dict[str, any]]:
     """
 
     try:
-        albums = db.query(Album).all()
+        offset = (page - 1) * size
+        albums = db.query(Album).offset(offset).limit(size).all()
         return [
             {
                 "album_id": album.id,

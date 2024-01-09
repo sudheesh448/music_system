@@ -84,8 +84,8 @@ async def upload_file(
 
 @app.get("/api/music/albums")
 async def list_albums( db: Session = Depends(get_db),
-    skip: int = Query(0, description="Number of items to skip"),
-    limit: int = Query(10, description="Number of items to return")
+    page: int = Query(1, description="Page number"),
+    size: int = Query(10, description="Number of items per page"),
 )-> JSONResponse:
     """
     Get a list of all albums in the database.
@@ -98,26 +98,34 @@ async def list_albums( db: Session = Depends(get_db),
            - "favorite": bool
     """
     try:
-        albums = get_all_albums(db, skip=skip, limit=limit)
+        albums = get_all_albums(db, page=page, size=size)
+        total_count_album = db.query(Album).count()
         response_data = {
             "success": True,
             "message": "Albums retrieved successfully",
-            "data": albums
+            "data": albums,
+            "page": page,
+            "size": size,
+            "total_count": total_count_album
         }
+        
         return JSONResponse(content=response_data, status_code=200)
     except HTTPException as e:
         error_message = str(e.detail)
         response_data = {
             "success": False,
             "message": error_message,
-            "data": []
+            "data": [],
+            "page": page,
+            "size": size,
+            "total_count": total_count_album
         }
         return JSONResponse(content=response_data, status_code=e.status_code)
     
 @app.get("/api/music/songs")
 async def list_songs(
-    skip: int = Query(0, description="Number of items to skip"),
-    limit: int = Query(10, description="Number of items to return"),
+    page: int = Query(1, description="Page number"),
+    size: int = Query(10, description="Number of items per page"),
     db: Session = Depends(get_db))-> JSONResponse:
     """
     Get a list of all songs in the database.
@@ -135,11 +143,15 @@ async def list_songs(
     """
     
     try:
-        songs = get_all_songs(db, skip=skip, limit=limit)
+        songs = get_all_songs(db, page=page, size=size)
+        total_count_music = db.query(Music).count()
         response_data = {
             "success": True,
             "message": "Songs retrieved successfully",
-            "data": songs
+            "data": songs,
+            "page": page,
+            "size": size,
+            "total_count": total_count_music
         }
         return JSONResponse(content=response_data, status_code=200)
 
@@ -148,7 +160,10 @@ async def list_songs(
         response_data = {
             "success": False,
             "message": error_message,
-            "data": []
+            "data": [],
+            "page": page,
+            "size": size,
+            "total_count": total_count_music
         }
         return JSONResponse(content=response_data, status_code=e.status_code)
 

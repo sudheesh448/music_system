@@ -2,7 +2,7 @@ from fastapi import HTTPException
 from sqlalchemy.orm import Session
 from backend.models import Music
 
-def get_all_songs(db: Session):
+def get_all_songs(db: Session, page: int = 1, size: int = 10):
     """
     Get a list of all songs in the database.
 
@@ -19,7 +19,8 @@ def get_all_songs(db: Session):
     """
 
     try:
-        songs = db.query(Music).all()
+        offset = (page - 1) * size
+        songs = db.query(Music).offset(offset).limit(size).all()
         return [
             {
                 "song_id": song.id,
