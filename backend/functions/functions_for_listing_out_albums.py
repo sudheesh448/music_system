@@ -62,6 +62,7 @@ def get_songs_for_album(db: Session, album_id: int) -> List[Dict[str, any]]:
                 "title": song.title,
                 "artist": song.artist,
                 "release_year": song.release_year,
+                
                 "favorite": song.favorite
             }
             for song in songs

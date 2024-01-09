@@ -203,20 +203,38 @@ async def get_album_details(album_id: int, db: Session = Depends(get_db))-> JSON
         songs = db.query(Music).filter(Music.album_id == album_id).all()
 
         album_details = {
-            "id": album.id,
-            "title": album.title,
-            "favorite": album.favorite,
-            "songs": [{
-                "id": song.id,
-                "title": song.title,
-                "artist": song.artist,
-                "release_year": song.release_year,
-                "favorite":song.favorite
-            } for song in songs]
+            "success": True,
+            "message": f"Details of album with ID {album_id} retrieved successfully.",
+            "data": {
+                "id": album.id,
+                "title": album.title,
+                "favorite": album.favorite,
+                "songs": [{
+                    "id": song.id,
+                    "title": song.title,
+                    "artist": song.artist,
+                    "release_year": song.release_year,
+                    "favorite": song.favorite
+                } for song in songs]
+            }
         }
         return JSONResponse(content=album_details, status_code=200)
-    except Exception as e:
-        raise HTTPException(status_code=500, detail="Internal Server Error")
+
+    except HTTPException as e:
+        response_data = {
+            "success": False,
+            "message": str(e.detail),
+            "data": []
+        }
+        raise HTTPException(status_code=e.status_code, detail=response_data)
+    
+    except:
+        response_data = {
+            "success": False,
+            "message": "Internal Server Error",
+            "data": []
+        }
+        raise HTTPException(status_code=500, detail=response_data)
 
 
 @app.get("/api/music/song/{song_id}")
@@ -249,19 +267,37 @@ async def get_song_details(song_id: int, db: Session = Depends(get_db))-> JSONRe
                 album_title = album.title
 
         song_details = {
-            "id": song.id,
-            "title": song.title,
-            "artist": song.artist,
-            "release_year": song.release_year,
-            "favorite": song.favorite,
-            "album_id": album_id,
-            "album_title": album_title,
+            "success": True,
+            "message": f"Details of song with ID {song_id} retrieved successfully.",
+            "data": {
+                "id": song.id,
+                "title": song.title,
+                "artist": song.artist,
+                "release_year": song.release_year,
+                "favorite": song.favorite,
+                "album_id": album_id,
+                "album_title": album_title,
+            }
         }
 
         return JSONResponse(content=song_details, status_code=200)
     
+    except HTTPException as e:
+        response_data = {
+            "success": False,
+            "message": str(e.detail),
+            "data": []
+        }
+        raise HTTPException(status_code=e.status_code, detail=response_data)
+    
     except:
-        raise HTTPException(status_code=500, detail="Internal Server Error")
+        response_data = {
+            "success": False,
+            "message": "Internal Server Error",
+            "data": []
+        }
+        raise HTTPException(status_code=500, detail=response_data)
+    
 
 
 @app.get("/api/music/song/{song_id}/stream")
@@ -309,20 +345,35 @@ async def favorite_music(song_id: int, db: Session = Depends(get_db))-> JSONResp
         db.commit()
 
         updated_song_details = {
-            "id": song.id,
-            "title": song.title,
-            "artist": song.artist,
-            "release_year": song.release_year,
-            "favorite": song.favorite,
+            "success": True,
+            "message": f"Song with ID {song_id} has been marked as {'favorite' if song.favorite else 'not favorite'}.",
+            "data": {
+                "id": song.id,
+                "title": song.title,
+                "artist": song.artist,
+                "release_year": song.release_year,
+                "favorite": song.favorite,
+            }
         }
 
         return JSONResponse(content=updated_song_details, status_code=200)
+
     except HTTPException as e:
         if e.status_code == 404:
-            raise HTTPException(status_code=404, detail=f"{e.detail}")
+            response_data = {
+                "success": False,
+                "message": str(e.detail),
+                "data": []
+            }
+            raise HTTPException(status_code=404, detail=response_data)
         raise
     except:
-        raise HTTPException(status_code=500, detail="Internal Server Error")
+        response_data = {
+            "success": False,
+            "message": "Internal Server Error",
+            "data": []
+        }
+        raise HTTPException(status_code=500, detail=response_data)
     
 
 @app.delete("/api/music/song/{song_id}")
@@ -352,14 +403,27 @@ async def delete_song(song_id: int, db: Session = Depends(get_db)) -> JSONRespon
         db.delete(song)
         db.commit()
 
-        return JSONResponse(content={"message": f"Song with ID {song_id} has been deleted successfully."}, status_code=200)
+        response_data = {
+            "success": True,
+            "message": f"Song with ID {song_id} has been deleted successfully.",
+        }
+
+        return JSONResponse(content=response_data, status_code=200)
 
     except HTTPException as e:
         if e.status_code == 404:
-            raise HTTPException(status_code=404, detail=f"{e.detail}")
+            response_data = {
+                "success": False,
+                "message": str(e.detail),
+            }
+            raise HTTPException(status_code=404, detail=response_data)
         raise
     except:
-        raise HTTPException(status_code=500, detail=f"Internal Server Error")
+        response_data = {
+            "success": False,
+            "message": "Internal Server Error",
+        }
+        raise HTTPException(status_code=500, detail=response_data)
 
 @app.delete("/api/music/album/{album_id}")
 async def delete_album(album_id: int, db: Session = Depends(get_db)) -> JSONResponse:
@@ -387,12 +451,24 @@ async def delete_album(album_id: int, db: Session = Depends(get_db)) -> JSONResp
         db.delete(album)
         db.commit()
 
-        return JSONResponse(content={"message": f"Album with ID {album_id} has been deleted successfully."}, status_code=200)
+        response_data = {
+            "success": True,
+            "message": f"Album with ID {album_id} has been deleted successfully.",
+        }
+
+        return JSONResponse(content=response_data, status_code=200)
 
     except HTTPException as e:
         if e.status_code == 404:
-            raise HTTPException(status_code=404, detail=f"{e.detail}")
+            response_data = {
+                "success": False,
+                "message": str(e.detail),
+            }
+            raise HTTPException(status_code=404, detail=response_data)
         raise
-    except Exception as ex:
-        raise HTTPException(status_code=500, detail=f"Internal Server Error")
-
+    except:
+        response_data = {
+            "success": False,
+            "message": "Internal Server Error",
+        }
+        raise HTTPException(status_code=500, detail=response_data)
