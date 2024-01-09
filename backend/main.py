@@ -103,10 +103,11 @@ async def list_albums( db: Session = Depends(get_db),
         response_data = {
             "success": True,
             "message": "Albums retrieved successfully",
-            "data": albums,
             "page": page,
             "size": size,
-            "total_count": total_count_album
+            "total_count": total_count_album,
+            "data": albums,
+            
         }
         
         return JSONResponse(content=response_data, status_code=200)
@@ -115,10 +116,11 @@ async def list_albums( db: Session = Depends(get_db),
         response_data = {
             "success": False,
             "message": error_message,
-            "data": [],
             "page": page,
             "size": size,
-            "total_count": total_count_album
+            "total_count": total_count_album,
+            "data": [],
+            
         }
         return JSONResponse(content=response_data, status_code=e.status_code)
     
@@ -148,10 +150,11 @@ async def list_songs(
         response_data = {
             "success": True,
             "message": "Songs retrieved successfully",
-            "data": songs,
             "page": page,
             "size": size,
-            "total_count": total_count_music
+            "total_count": total_count_music,
+            "data": songs,
+            
         }
         return JSONResponse(content=response_data, status_code=200)
 
@@ -160,10 +163,11 @@ async def list_songs(
         response_data = {
             "success": False,
             "message": error_message,
-            "data": [],
             "page": page,
             "size": size,
-            "total_count": total_count_music
+            "total_count": total_count_music,
+            "data": [],
+            
         }
         return JSONResponse(content=response_data, status_code=e.status_code)
 
