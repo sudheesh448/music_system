@@ -58,6 +58,7 @@ def get_songs_for_album(db: Session, album_id: int) -> List[Dict[str, any]]:
         return [
             {
                 "song_id": song.id,
+                "album_id": song.album_id,
                 "title": song.title,
                 "artist": song.artist,
                 "release_year": song.release_year,
