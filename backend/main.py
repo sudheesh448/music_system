@@ -2,11 +2,12 @@
 import os
 from typing import Dict, Optional
 
-from fastapi import FastAPI, File, UploadFile, Form, HTTPException, Depends,status
+from fastapi import FastAPI, File, Query, UploadFile, Form, HTTPException, Depends,status
 from fastapi.responses import JSONResponse, StreamingResponse
 from sqlalchemy.orm import Session
 from pathlib import Path
 from typing import List
+from fastapi.middleware.cors import CORSMiddleware
 
 from backend.database import SessionLocal, engine
 from backend.functions.functions_for_get_song import get_song_by_id
@@ -18,6 +19,18 @@ from backend.models import Music, Album
 
 
 app = FastAPI()
+
+origins = [
+    "*"
+]
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=origins,
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
 def get_db():
     """
@@ -70,7 +83,10 @@ async def upload_file(
 
 
 @app.get("/api/music/albums")
-async def list_albums(db: Session = Depends(get_db))-> JSONResponse:
+async def list_albums( db: Session = Depends(get_db),
+    skip: int = Query(0, description="Number of items to skip"),
+    limit: int = Query(10, description="Number of items to return")
+)-> JSONResponse:
     """
     Get a list of all albums in the database.
 
@@ -82,14 +98,27 @@ async def list_albums(db: Session = Depends(get_db))-> JSONResponse:
            - "favorite": bool
     """
     try:
-        albums = get_all_albums(db)
-        return JSONResponse(content=albums, status_code=200)
-    except Exception as e:
-        raise HTTPException(status_code=500, detail="Internal Server Error")
-
+        albums = get_all_albums(db, skip=skip, limit=limit)
+        response_data = {
+            "success": True,
+            "message": "Albums retrieved successfully",
+            "data": albums
+        }
+        return JSONResponse(content=response_data, status_code=200)
+    except HTTPException as e:
+        error_message = str(e.detail)
+        response_data = {
+            "success": False,
+            "message": error_message,
+            "data": []
+        }
+        return JSONResponse(content=response_data, status_code=e.status_code)
     
 @app.get("/api/music/songs")
-async def list_songs(db: Session = Depends(get_db))-> JSONResponse:
+async def list_songs(
+    skip: int = Query(0, description="Number of items to skip"),
+    limit: int = Query(10, description="Number of items to return"),
+    db: Session = Depends(get_db))-> JSONResponse:
     """
     Get a list of all songs in the database.
 
@@ -106,11 +135,22 @@ async def list_songs(db: Session = Depends(get_db))-> JSONResponse:
     """
     
     try:
-        songs = get_all_songs(db)
-        return JSONResponse(content=songs, status_code=200)
-    
-    except Exception as e:
-        raise HTTPException(status_code=500, detail="Internal Server Error")
+        songs = get_all_songs(db, skip=skip, limit=limit)
+        response_data = {
+            "success": True,
+            "message": "Songs retrieved successfully",
+            "data": songs
+        }
+        return JSONResponse(content=response_data, status_code=200)
+
+    except HTTPException as e:
+        error_message = str(e.detail)
+        response_data = {
+            "success": False,
+            "message": error_message,
+            "data": []
+        }
+        return JSONResponse(content=response_data, status_code=e.status_code)
 
 @app.get("/api/music/albums/{album_id}")
 async def get_album_details(album_id: int, db: Session = Depends(get_db))-> JSONResponse:
