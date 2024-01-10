@@ -2,7 +2,7 @@
 import os
 from typing import Dict, Optional
 
-from fastapi import FastAPI, File, Query, UploadFile, Form, HTTPException, Depends,status
+from fastapi import FastAPI, File, Query, UploadFile, Form, HTTPException, Depends,status,WebSocket
 from fastapi.responses import JSONResponse, StreamingResponse
 from sqlalchemy.orm import Session
 from pathlib import Path
@@ -26,7 +26,7 @@ origins = [
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=origins,
+    allow_origins=["*"],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -128,7 +128,10 @@ async def list_albums( db: Session = Depends(get_db),
 async def list_songs(
     page: int = Query(1, description="Page number"),
     size: int = Query(10, description="Number of items per page"),
-    db: Session = Depends(get_db))-> JSONResponse:
+    cursor: int = Query(None, description="Cursor for pagination"),
+    direction: str = Query("next", description="Pagination direction (next or previous)"),
+    db: Session = Depends(get_db)
+) -> JSONResponse:
     """
     Get a list of all songs in the database.
 
@@ -143,9 +146,8 @@ async def list_songs(
           - "release_year": int - The release year of the song.
           - "favorite": bool - Indicates whether the song is marked as a favorite.
     """
-    
     try:
-        songs = get_all_songs(db, page=page, size=size)
+        songs = get_all_songs(db, page=page, size=size, cursor=cursor, direction=direction)
         total_count_music = db.query(Music).count()
         response_data = {
             "success": True,
@@ -154,7 +156,6 @@ async def list_songs(
             "size": size,
             "total_count": total_count_music,
             "data": songs,
-            
         }
         return JSONResponse(content=response_data, status_code=200)
 
@@ -165,9 +166,20 @@ async def list_songs(
             "message": error_message,
             "page": page,
             "size": size,
+            "total_count": 0,  # Set total_count to 0 in case of an error
+            "data": [],
+        }
+        return JSONResponse(content=response_data, status_code=e.status_code)
+
+    except HTTPException as e:
+        error_message = str(e.detail)
+        response_data = {
+            "success": False,
+            "message": error_message,
+            "page": page,
+            "size": size,
             "total_count": total_count_music,
             "data": [],
-            
         }
         return JSONResponse(content=response_data, status_code=e.status_code)
 
@@ -300,15 +312,25 @@ async def get_song_details(song_id: int, db: Session = Depends(get_db))-> JSONRe
     
 
 
-@app.get("/api/music/song/{song_id}/stream")
-async def stream_music_file(song_id: int, db: Session = Depends(get_db))-> StreamingResponse:
-    """
-    Stream the music file associated with a given song ID.
+websocket_connections = {}
 
-    RETURNS:
-        - StreamingResponse: A streaming response containing the music file.
+@app.websocket("/music/song/{song_id}/stream")
+async def stream_music_file(
+    websocket: WebSocket,
+    song_id: int,
+    db: Session = Depends(get_db)
+):
     """
+    Stream the music file associated with a given song ID with pause, seek, and fwd/rvs functionality.
 
+    PARAMETERS:
+        - websocket: WebSocket connection
+        - song_id: The unique identifier of the song.
+
+    Returns:
+        - WebSocket communication for streaming the music file.
+    """
+    print("here")
     try:
         file_path = db.query(Music.music_file_path).filter(Music.id == song_id).scalar()
 
@@ -317,15 +339,57 @@ async def stream_music_file(song_id: int, db: Session = Depends(get_db))-> Strea
         
         if not Path(file_path).is_file():
             raise HTTPException(status_code=404, detail=f"File not found: {file_path}")
-    
-        return StreamingResponse(open(file_path, "rb"), media_type="audio/mpeg")
-    
+
+        # Send the initial chunk of the file
+        await websocket.accept()
+        await websocket.send_bytes(open(file_path, "rb").read(1024))
+
+        # Store the WebSocket connection
+        websocket_connections[song_id] = websocket
+
+        while True:
+            # Receive commands from the client
+            data = await websocket.receive_text()
+
+            if data == "pause":
+                # Pause streaming
+                continue
+            elif data.startswith("seek:"):
+                # Seek to a specific position (in seconds)
+                position = int(data.split(":")[1])
+                # Implement logic to seek to the specified position
+                continue
+            elif data == "fwd":
+                # Forward (skip ahead)
+                # Implement logic to skip forward
+                continue
+            elif data == "rvs":
+                # Reverse (skip backward)
+                # Implement logic to skip backward
+                continue
+            elif data == "close":
+                # Close the WebSocket connection
+                await websocket.close()
+                break
+
     except HTTPException as e:
         if e.status_code == 404:
-            raise HTTPException(status_code=404, detail=f"{e.detail}")
+            await websocket.send_text(f"Error: {e.detail}")
         raise
-    except:
-        raise HTTPException(status_code=500, detail="Internal Server Error")
+
+    except Exception as ex:
+        await websocket.send_text("Internal Server Error")
+
+    finally:
+        # Remove the WebSocket connection when the client disconnects
+        del websocket_connections[song_id]
+
+# Example of notifying the WebSocket for updates (you can call this from another part of your code)
+async def notify_song_update(song_id: int, data: bytes):
+    if song_id in websocket_connections:
+        await websocket_connections[song_id].send_bytes(data)
+
+        
 
 @app.patch("/api/music/song/{song_id}/favorite")
 async def favorite_music(song_id: int, db: Session = Depends(get_db))-> JSONResponse:

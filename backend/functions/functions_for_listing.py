@@ -1,26 +1,25 @@
 from fastapi import HTTPException
+from sqlalchemy import desc
 from sqlalchemy.orm import Session
+
 from backend.models import Music
 
-def get_all_songs(db: Session, page: int = 1, size: int = 10):
-    """
-    Get a list of all songs in the database.
 
-    RETURNS
-    - List[dict]: List of dictionaries representing each song's details.
-      Each dictionary has the following keys:
-      - "song_id" (int): The unique identifier of the song.
-      - "album_id" (int or None): The unique identifier of the album to which the song belongs.
-      - "title" (str): The title of the song.
-      - "artist" (str): The artist of the song.
-      - "album" (str or None): The title of the album to which the song belongs.
-      - "release_year" (int): The release year of the song.
-      - "favorite" (bool): Indicates whether the song is marked as a favorite.
-    """
-
+def get_all_songs(db: Session, page: int = 1, size: int = 10, cursor: int = None, direction: str = "next"):
     try:
-        offset = (page - 1) * size
-        songs = db.query(Music).offset(offset).limit(size).all()
+        query = db.query(Music)
+
+        if direction == "next":
+            if cursor is not None:
+                query = query.filter(Music.id > cursor).order_by(Music.id)
+        elif direction == "previous":
+            if cursor is not None:
+                query = query.filter(Music.id < cursor).order_by(desc(Music.id))
+
+        query = query.limit(size) 
+
+        songs = query.all()
+
         return [
             {
                 "song_id": song.id,
@@ -33,6 +32,6 @@ def get_all_songs(db: Session, page: int = 1, size: int = 10):
             }
             for song in songs
         ]
-    
+
     except Exception as e:
         raise HTTPException(status_code=500, detail="Internal Server Error")
